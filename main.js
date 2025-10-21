@@ -4,7 +4,6 @@ const fs = require('fs').promises;
 const { XMLBuilder } = require('fast-xml-parser');
 
 const program = new Command();
-
 program
   .option('-i, --input <path>', 'input file path (JSON data)')
   .option('-h, --host <host>', 'server host (e.g. localhost)')
@@ -31,7 +30,6 @@ async function readJSON(filePath) {
   }
 }
 
-
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${options.host}:${options.port}`);
@@ -48,15 +46,19 @@ const server = http.createServer(async (req, res) => {
 
     const includeCyl = params.get('cylinders') === 'true';
 
-    let xml = '<cars>\n';
-    for (const car of filtered) {
-      xml += `  <car>\n`;
-      xml += `    <model>${car.model || 'unknown'}</model>\n`;
-      xml += `    <mpg>${car.mpg ?? 'N/A'}</mpg>\n`;
-      if (includeCyl) xml += `    <cyl>${car.cyl ?? 'N/A'}</cyl>\n`;
-      xml += `  </car>\n`;
-}
-xml += '</cars>';
+const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
+
+const carsXmlObj = {
+  cars: {
+    car: filtered.map(car => {
+      const obj = { model: car.model || 'unknown', mpg: car.mpg ?? 'N/A' };
+      if (includeCyl) obj.cyl = car.cyl ?? 'N/A';
+      return obj;
+    })
+  }
+};
+
+const xml = builder.build(carsXmlObj);
 
 res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' });
 res.end(xml);
@@ -68,5 +70,8 @@ res.end(xml);
 });
 
 server.listen(options.port, options.host, () => {
-  console.log(`Server running at http://${options.host}:${options.port}/`);
+  console.log('Server running:');
+  console.log(`Base URL:   http://${options.host}:${options.port}/`);
+  console.log(`Cylinders:  http://${options.host}:${options.port}/?cylinders=true`);
+  console.log(`Mpg:  http://${options.host}:${options.port}/?max_mpg=25`);
 });
