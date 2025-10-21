@@ -2,7 +2,7 @@
   "name": "backend-course-2025-4",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "start": "node main.js -i mtcars.json -h localhost -p 3000",
     "dev": "nodemon main.js -i mtcars.json -h localhost -p 3000"
